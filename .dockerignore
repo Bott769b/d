@@ -1,0 +1,22 @@
+node_modules
+.next
+out
+.git
+.gitignore
+
+# Never bake local secrets or local data into the image — Railway provides
+# env vars, and the DB + uploads live on the mounted volume.
+.env
+.env.local
+.env.*.local
+.uploads
+prisma/dev.db
+prisma/*.db
+prisma/*.db-journal
+
+# Local cruft
+*.log
+npm-debug.log*
+.DS_Store
+.vscode
+README.md

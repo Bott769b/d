@@ -1,0 +1,63 @@
+// Prisma schema — SQLite. Multi-user: accounts, per-user conversations, and
+// per-user encrypted uploads. To move to Postgres later: change provider to
+// "postgresql", point DATABASE_URL at your instance, then `prisma migrate`.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  username      String         @unique
+  passwordHash  String // scrypt: scrypt$<saltB64>$<hashB64>
+  role          String         @default("user") // "user" | "admin"
+  createdAt     DateTime       @default(now())
+  conversations Conversation[]
+  uploads       Upload[]
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  // Nullable so pre-accounts rows survive the migration; new rows always set it.
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String    @default("New chat")
+  modelId   String    @default("gpt-5.4")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
+
+  @@index([userId, updatedAt])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String // "user" | "assistant"
+  content        String
+  modelId        String? // model used for assistant replies
+  attachments    String? // JSON array of { id, name, mimeType, kind, url }
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model Upload {
+  id           String   @id @default(cuid())
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filename     String // encrypted blob on disk (private uploads dir)
+  originalName String
+  mimeType     String
+  size         Int // original (plaintext) byte size
+  kind         String // "image" | "file"
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
