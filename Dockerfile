@@ -30,4 +30,4 @@ ENV NODE_ENV=production
 EXPOSE 3000
 
 # Sync the schema to the volume-backed DB, then start the server.
-CMD ["sh", "-c", "npx prisma db push --skip-generate && npm run start"]
+CMD ["sh", "-c", "echo BOOT_PORT=[$PORT]; npx prisma db push --skip-generate; echo STARTING_NEXT_NOW; npx next start -H 0.0.0.0; echo NEXT_EXITED_CODE=$?"]
