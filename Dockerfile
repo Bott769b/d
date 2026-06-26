@@ -26,7 +26,7 @@ RUN npm run build
 
 # Runtime config (these only affect the running container, not the build above).
 ENV NODE_ENV=production
-ENV PORT=3000
+# PORT is injected by Railway at runtime; next falls back to 3000 if unset
 EXPOSE 3000
 
 # Sync the schema to the volume-backed DB, then start the server.
