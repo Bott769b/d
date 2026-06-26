@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { ease } from "@/components/motion/easings";
 import type { MessageAttachment } from "@/lib/types";
 import { ThinkingMark } from "./ThinkingMark";
+import { Markdown } from "./Markdown";
 
 export type MessageStatus = "complete" | "streaming" | "thinking" | "error";
 
@@ -70,17 +71,18 @@ export function Message({
           className={[
             "max-w-[68ch] text-[15.5px] leading-[1.65]",
             isUser ? "text-[var(--color-ink)]" : "text-[var(--color-ink-2)]",
-            "whitespace-pre-wrap break-words",
           ].join(" ")}
         >
           {status === "thinking" ? (
             <ThinkingMark />
           ) : status === "error" ? (
             <ErrorBlock message={errorMessage ?? "Something didn't land."} />
+          ) : isUser ? (
+            <div className="whitespace-pre-wrap break-words">{content ?? ""}</div>
           ) : status === "streaming" ? (
-            <StreamingBody chunks={chunks ?? []} />
+            <Markdown text={(chunks ?? []).join("")} cursor />
           ) : (
-            <span>{content ?? ""}</span>
+            <Markdown text={content ?? ""} />
           )}
         </div>
       ) : null}
@@ -132,19 +134,6 @@ function Attachments({
         ),
       )}
     </div>
-  );
-}
-
-function StreamingBody({ chunks }: { chunks: string[] }): React.JSX.Element {
-  return (
-    <span>
-      {chunks.map((chunk, i) => (
-        <span key={i} data-chunk>
-          {chunk}
-        </span>
-      ))}
-      <span className="cursor-mark" aria-hidden="true" />
-    </span>
   );
 }
 

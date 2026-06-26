@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { CavotiError, streamChat } from "@/lib/cavoti";
 import { isValidModel } from "@/lib/models";
+import { getSystemPrompt } from "@/lib/prompt";
 import { persistExchange } from "@/lib/conversations";
 import { getSession } from "@/lib/auth-server";
 import { db } from "@/lib/db";
@@ -185,6 +186,12 @@ export async function POST(req: Request): Promise<Response> {
     wireMessages = buildWireMessages(parsed.messages, { index: idx, imageParts, textAdditions });
   } else {
     wireMessages = parsed.messages.map((m) => ({ role: m.role, content: m.content }));
+  }
+
+  // Prepend the default system prompt unless the client already supplied one.
+  // This is what makes replies well-formatted and coding-friendly out of the box.
+  if (!wireMessages.some((m) => m.role === "system")) {
+    wireMessages = [{ role: "system", content: getSystemPrompt() }, ...wireMessages];
   }
 
   const stream = new ReadableStream<Uint8Array>({
